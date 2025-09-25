@@ -1,79 +1,157 @@
-# 📇 Mini-CRM (CLI) en Go - CHEIO THOMAS
+# 📇 Mini-CRM (CLI) en Go — CHEIO THOMAS
 
-Un petit CRM en ligne de commande développé en **Go**.  
-Il permet de gérer une liste de contacts en mémoire : **ajout, suppression, mise à jour et affichage**.
+**Mini-CRM** est un gestionnaire de contacts professionnel en ligne de commande développé en **Go**.  
+Il s’agit d’un projet complet mettant en œuvre les **bonnes pratiques de développement Go**, notamment :
+
+- Architecture modulaire avec des packages séparés  
+- Injection de dépendances via des **interfaces**  
+- CLI moderne basée sur **Cobra**  
+- Gestion de configuration externe via **Viper**  
+- Persistance de données flexible : **SQLite (GORM)**, **JSON** ou **mémoire**
 
 ---
 
 ## 🚀 Lancer le projet
 
-Placez-vous dans le dossier où se trouvent tous vos fichiers `.go` puis exécutez :
+Depuis la racine du projet :
 
 ```bash
 go run .
 ```
 
----
-
-## 📖 Fonctionnalités
-
-- Mode interactif (menu en boucle)
-- Afficher le menu principal
-- Ajouter un contact (**ID, Nom, Email**)
-- Lister tous les contacts
-- Supprimer un contact par ID
-- Mettre à jour un contact
-- Quitter l’application
-
----
-
-## ⚡ Utilisation avec flags (ajout direct)
-
-Il est possible d’ajouter un contact directement sans passer par le menu grâce aux **flags** :
+Ou compilez un binaire exécutable :
 
 ```bash
-go run . -add -id 1 -name "Alice" -email "alice@example.com"
-```
-
-### Options disponibles :
-- `-add` → active le mode ajout par flags
-- `-id` → identifiant numérique du contact
-- `-name` → nom du contact
-- `-email` → email du contact
-
-⚠️ **Tous ces champs sont obligatoires** lorsque vous utilisez `-add`.
-
-### Exemples :
-
-```bash
-# Ajout d’un contact Alice
-go run . -add -id 1 -name "Alice" -email "alice@example.com"
-
-# Ajout d’un contact Bob
-go run . -add -id 2 -name "Bob" -email "bob@test.org"
+go build -o bin/mini-crm .
+./bin/mini-crm
 ```
 
 ---
 
-## 🛠️ Concepts utilisés
+## 📁 Structure du projet
 
-Le projet met en pratique plusieurs idiomes Go :
+```
+refactor_crm_interface/
+├── cmd/                 # Sous-commandes CLI
+│   ├── root.go
+│   ├── add.go
+│   ├── list.go
+│   ├── update.go
+│   └── delete.go
+├── internal/
+│   └── storage/        # Implémentations du stockage (SQLite, JSON, mémoire)
+│       ├── storage.go
+│       ├── gorm_store.go
+│       ├── json_store.go
+│       └── memory_store.go
+├── config.yaml         # Fichier de configuration de l’application
+├── data/
+│   ├── contacts.db     # Base de données SQLite
+│   └── contacts.json   # Fichier JSON (si utilisé)
+├── go.mod
+└── main.go
+```
 
-- `for {}` → boucle infinie du menu
-- `switch` → gestion des choix du menu
-- `map[int]Contact` → stockage des contacts
-- *comma ok idiom* → vérification de la présence d’une clé dans la map
-- `if err != nil` → gestion des erreurs
-- `strconv` → conversion des entrées utilisateur
-- `os.Stdin` + `bufio.NewReader` → lecture de la saisie utilisateur
-- `flag` → gestion des options en ligne de commande
+---
+
+## ⚙️ Configuration (`config.yaml`)
+
+Le comportement de l’application est défini dans un fichier externe qui permet de choisir le mode de persistance **sans recompilation** :
+
+```yaml
+storage:
+  type: gorm       # gorm | json | memory
+  json_path: data/contacts.json
+  db_path:   data/contacts.db
+```
+
+- **type** : mode de stockage (`gorm`, `json` ou `memory`)  
+- **json_path** : chemin du fichier de stockage JSON  
+- **db_path** : chemin de la base de données SQLite  
+
+📁 **Fichiers importants :**
+- Base SQLite : `data/contacts.db`  
+- Fichier JSON : `data/contacts.json`  
+- Configuration : `config.yaml`
+
+---
+
+## 📖 Fonctionnalités principales
+
+✅ **Gestion complète des contacts (CRUD)**  
+- `add` → Ajouter un contact  
+- `list` → Lister les contacts  
+- `update` → Modifier un contact existant  
+- `delete` → Supprimer un contact
+
+✅ **Interface CLI moderne (Cobra)**  
+- Commandes claires et standardisées  
+- Aide intégrée avec `--help`
+
+✅ **Configuration externe (Viper)**  
+- Modification du backend sans recompiler  
+- Gestion flexible des chemins pour les fichiers
+
+✅ **Persistance flexible (via interfaces)**  
+- `gorm` : stockage dans une base SQLite locale  
+- `json` : stockage simple et lisible  
+- `memory` : stockage en mémoire (tests, démo)
+
+---
+
+## 🧪 Exemples d’utilisation
+
+### ➕ Ajouter un contact
+```bash
+go run . add --name "Alice" --email "alice@example.com"
+```
+
+### 📜 Lister les contacts
+```bash
+go run . list
+```
+
+### ✏️ Mettre à jour un contact
+```bash
+go run . update --id 1 --name "Alice Cooper"
+```
+
+### 🗑️ Supprimer un contact
+```bash
+go run . delete --id 1
+```
+
+---
+
+## 🧠 Concepts Go utilisés
+
+- **Cobra** → création de commandes et sous-commandes CLI  
+- **Viper** → gestion de configuration via fichiers et variables d’environnement  
+- **GORM** → ORM pour la persistance SQLite  
+- **Interfaces** → injection de dépendances et découplage de la logique métier  
+- **Architecture modulaire** → séparation claire des responsabilités
+
+---
+
+## 📚 Commandes utiles
+
+```bash
+# Aide globale
+go run . --help
+
+# Aide pour une commande spécifique
+go run . add --help
+```
 
 ---
 
 ## 🧩 Améliorations possibles
 
-- Sauvegarder/charger les contacts depuis un fichier JSON
-- Ajouter des sous-commandes (`mini-crm add | list | update | delete`)
-- Écrire des tests unitaires (`go test`) pour valider la logique
+- Exporter/importer les contacts en CSV  
+- Ajouter une commande `config show`  
+- Écrire des tests unitaires (`go test`)  
+- Créer une API REST réutilisant la même logique métier
 
 ---
+
+💡 **Mini-CRM** démontre comment transformer un simple programme Go en une application CLI robuste, configurable, extensible et prête pour la production.
